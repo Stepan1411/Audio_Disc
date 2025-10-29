@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "id": "audio_disc",
+  "version": "${version}",
+  "name": "Audio Disc",
+  "description": "A server-side mod that allows players to upload custom audio to music discs and play them through Simple Voice Chat",
+  "authors": ["Stepan"],
+  "contact": {},
+  "license": "All-Rights-Reserved",
+  "icon": "assets/audio_disc/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-datagen": [
+      "org.stepan.audio_disc.client.Audio_discDataGenerator"
+    ],
+    "main": [
+      "org.stepan.audio_disc.Audio_disc"
+    ],
+    "voicechat": [
+      "org.stepan.audio_disc.playback.SimpleVoiceChatIntegration"
+    ]
+  },
+  "mixins": [
+    "audio_disc.mixins.json",
+    {
+      "config": "audio_disc.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_version}",
+    "java": ">=21"
+  },
+  "suggests": {
+    "voicechat": ">=2.5.0"
+  },
+  "custom": {
+    "modmenu": {
+      "badges": ["library"],
+      "links": {
+        "modmenu.discord": "https://discord.gg/example"
+      }
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "required": true,
+  "package": "ru.dimaskama.voicemessages.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "minVersion": "0.8",
+  "client": [
+    "client.ChatComponentMixin",
+    "client.ChatScreenMixin",
+    "client.GuiMessageLineMixin",
+    "client.ScreenAccessor",
+    "client.MinecraftMixin"
+  ],
+  "mixins": [
+    "ServerPlayerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

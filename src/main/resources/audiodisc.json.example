@@ -1,0 +1,13 @@
+{
+  "maxFileSize": 52428800,
+  "downloadTimeout": 30,
+  "supportedFormats": [
+    "mp3",
+    "ogg",
+    "wav"
+  ],
+  "enableProgressUpdates": true,
+  "progressUpdateInterval": 25,
+  "storageDirectory": "audio_disc/audio",
+  "enableApiEvents": true
+}

@@ -1,0 +1,22 @@
+name: voicemessages
+version: ${version}
+main: ru.dimaskama.voicemessages.paper.VoiceMessagesPaper
+description: Voice messages in minecraft chat
+author: DimasKama
+folia-supported: true
+api-version: 1.21
+depend:
+  - voicechat
+permissions:
+  voicemessages.send:
+    default: true
+    description: Send voice messages
+  voicemessages.send.all:
+    default: true
+    description: Send voice messages to all players
+  voicemessages.send.team:
+    default: true
+    description: Send voice messages to the team
+  voicemessages.send.players:
+    default: true
+    description: Send voice messages privately to the players
