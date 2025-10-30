@@ -37,11 +37,13 @@ This document specifies the requirements for a server-side Minecraft mod that en
 
 #### Acceptance Criteria
 
-1. WHEN a custom Music Disc is inserted into a Jukebox, THE AudioDisc System SHALL retrieve the associated Audio File data
-2. WHEN the Audio File data is retrieved, THE AudioDisc System SHALL stream the audio through the Simple Voice Chat integration
-3. WHILE the custom Music Disc is playing, THE AudioDisc System SHALL maintain synchronization between all players within hearing range
-4. WHEN a Player removes the Music Disc from the Jukebox, THE AudioDisc System SHALL stop the audio playback
-5. WHEN the Audio File playback completes naturally, THE AudioDisc System SHALL stop the audio stream and eject the disc
+1. WHEN a custom Music Disc is inserted into a Jukebox by any method, THE AudioDisc System SHALL retrieve the associated Audio File data
+2. WHEN a Hopper or Dropper inserts a custom Music Disc into a Jukebox, THE AudioDisc System SHALL detect the insertion and initiate playback
+3. WHEN a Player manually places a custom Music Disc into a Jukebox, THE AudioDisc System SHALL detect the insertion and initiate playback
+4. WHEN the Audio File data is retrieved, THE AudioDisc System SHALL stream the audio through the Simple Voice Chat integration
+5. WHILE the custom Music Disc is playing, THE AudioDisc System SHALL maintain synchronization between all players within hearing range
+6. WHEN a Player removes the Music Disc from the Jukebox, THE AudioDisc System SHALL stop the audio playback
+7. WHEN the Audio File playback completes naturally, THE AudioDisc System SHALL stop the audio stream and eject the disc
 
 ### Requirement 3
 

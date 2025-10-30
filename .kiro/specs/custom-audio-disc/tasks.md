@@ -198,12 +198,14 @@
 
 - [ ] 5.3 Create JukeboxBlockEntityMixin
 
-  - Mixin to intercept disc insertion in jukebox
+  - Mixin to intercept disc insertion in jukebox (both manual and automated via hopper/dropper)
+  - Intercept setStack method to catch all insertion methods including hoppers
   - Mixin to intercept disc removal from jukebox
-  - Trigger PlaybackManager.startPlayback on custom disc insertion
+  - Trigger PlaybackManager.startPlayback on custom disc insertion regardless of insertion method
   - Trigger PlaybackManager.stopPlayback on disc removal
   - Check for custom audio using AudioStorageManager.getDiscAudioId
-  - _Requirements: 2.1, 2.4_
+  - Ensure hopper-inserted custom discs trigger audio playback correctly
+  - _Requirements: 2.1, 2.2, 2.4_
 
 - [ ] 5.4 Write integration tests for playback system
 

@@ -4,7 +4,8 @@
   "package": "org.stepan.audio_disc.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "ItemStackMixin"
+    "ItemStackMixin",
+    "JukeboxBlockEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1

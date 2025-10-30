@@ -252,7 +252,7 @@ public class PlaybackManager {
     private final Map<BlockPos, ActivePlayback> activePlaybacks;
     private final SimpleVoiceChatIntegration voiceChatIntegration;
     
-    // Starts playback when disc inserted
+    // Starts playback when disc inserted (manual or automated)
     public void startPlayback(ServerWorld world, BlockPos jukeboxPos, ItemStack disc);
     
     // Stops playback when disc removed
@@ -262,6 +262,9 @@ public class PlaybackManager {
     public Optional<ActivePlayback> getPlayback(BlockPos jukeboxPos);
 }
 ```
+
+**Hopper/Dropper Integration:**
+The PlaybackManager must handle disc insertions from both manual player interaction and automated systems (hoppers, droppers). The JukeboxBlockEntityMixin will intercept the `setStack` method which is called regardless of insertion method, ensuring custom audio playback is triggered consistently.
 
 #### SimpleVoiceChatIntegration
 ```java
@@ -589,9 +592,10 @@ Create `config/audiodisc.json`:
 ### Mixins Required
 
 1. **JukeboxBlockEntityMixin**
-   - Intercept disc insertion
+   - Intercept disc insertion (manual and automated)
    - Intercept disc removal
    - Trigger playback events
+   - Handle hopper/dropper insertions by monitoring setStack method
 
 2. **ItemStackMixin** (optional)
    - Custom tooltip for audio discs
