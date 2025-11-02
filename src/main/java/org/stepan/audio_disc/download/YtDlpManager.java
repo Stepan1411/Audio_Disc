@@ -16,7 +16,7 @@ import java.util.concurrent.CompletableFuture;
  * Manages automatic download and installation of yt-dlp.
  */
 public class YtDlpManager {
-    private static final Logger LOGGER = LoggerFactory.getLogger("YtDlpManager");
+    private static final Logger LOGGER = LoggerFactory.getLogger("AudioDisc");
     
     // yt-dlp release URLs for different platforms
     private static final String WINDOWS_URL = "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe";

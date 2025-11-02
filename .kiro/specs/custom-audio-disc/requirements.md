@@ -108,12 +108,42 @@ This document specifies the requirements for a server-side Minecraft mod that en
 
 ### Requirement 8
 
-**User Story:** As a player, I want to change the description of my custom music disc, so that I can give it a custom name that's more meaningful than the file name.
+**User Story:** As a player, I want to change the title and description of my custom music disc, so that I can give it a custom name and lore that's more meaningful than the file name.
 
 #### Acceptance Criteria
 
-1. THE AudioDisc System SHALL provide a `/audiodisc rename <custom_title>` command for Players
-2. WHEN a Player executes the rename command while holding a custom Music Disc, THE AudioDisc System SHALL update the disc's custom title
-3. IF the Player does not hold a custom Music Disc as their Held Item, THEN THE AudioDisc System SHALL display an error message
-4. WHEN the rename is successful, THE AudioDisc System SHALL display a confirmation message to the Player
-5. WHEN a Player hovers over a renamed Music Disc, THE AudioDisc System SHALL display the custom title instead of the original file name
+1. THE AudioDisc System SHALL provide a `/audiodisc rename title <custom_title>` command for Players
+2. THE AudioDisc System SHALL provide a `/audiodisc rename lore <custom_lore>` command for Players
+3. WHEN a Player executes the rename title command while holding a custom Music Disc, THE AudioDisc System SHALL update the disc's display name
+4. WHEN a Player executes the rename lore command while holding a custom Music Disc, THE AudioDisc System SHALL update the disc's description text
+5. IF the Player does not hold a custom Music Disc as their Held Item, THEN THE AudioDisc System SHALL display an error message
+6. WHEN the rename is successful, THE AudioDisc System SHALL display a confirmation message to the Player
+7. WHEN a Player hovers over a renamed Music Disc, THE AudioDisc System SHALL display the custom title as the item name
+8. WHEN a Player hovers over a Music Disc with custom lore, THE AudioDisc System SHALL display the custom description in the tooltip
+
+### Requirement 9
+
+**User Story:** As a player, I want to access help information about available commands, so that I can learn how to use the AudioDisc System features.
+
+#### Acceptance Criteria
+
+1. THE AudioDisc System SHALL provide a `/audiodisc help` command that displays all available commands
+2. THE AudioDisc System SHALL provide a `/audiodisc help <command_name>` command that displays detailed help for a specific command
+3. WHEN a Player executes `/audiodisc help`, THE AudioDisc System SHALL display a list of all available subcommands with brief descriptions
+4. WHEN a Player executes `/audiodisc help rename`, THE AudioDisc System SHALL display detailed usage information for the rename command including both title and lore options
+5. WHEN a Player executes `/audiodisc help upload`, THE AudioDisc System SHALL display detailed usage information for the upload command
+6. IF a Player requests help for a non-existent command, THEN THE AudioDisc System SHALL display an error message and suggest using `/audiodisc help` to see available commands
+
+### Requirement 10
+
+**User Story:** As a server administrator, I want all system messages to support localization, so that players can use the mod in their preferred language.
+
+#### Acceptance Criteria
+
+1. THE AudioDisc System SHALL store all user-facing messages in language files using Minecraft's localization system
+2. THE AudioDisc System SHALL provide English (en_us) translations for all messages by default
+3. THE AudioDisc System SHALL provide Russian (ru_ru) translations for all messages
+4. WHEN displaying any message to a Player, THE AudioDisc System SHALL use the Player's configured language preference
+5. THE AudioDisc System SHALL include localization keys for all command feedback messages including success, error, and help text
+6. THE AudioDisc System SHALL include localization keys for all tooltip text displayed on custom Music Discs
+7. THE AudioDisc System SHALL format localized messages with dynamic parameters such as file names, durations, and player names

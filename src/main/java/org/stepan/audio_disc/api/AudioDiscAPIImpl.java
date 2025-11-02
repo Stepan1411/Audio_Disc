@@ -21,9 +21,11 @@ public class AudioDiscAPIImpl implements AudioDiscAPI {
     private static AudioDiscAPIImpl instance;
     
     private final Set<AudioEventListener> listeners;
+    private final Set<AudioStreamListener> streamListeners;
 
     private AudioDiscAPIImpl() {
         this.listeners = new CopyOnWriteArraySet<>();
+        this.streamListeners = new CopyOnWriteArraySet<>();
     }
 
     /**
@@ -60,6 +62,26 @@ public class AudioDiscAPIImpl implements AudioDiscAPI {
         
         listeners.remove(listener);
         LOGGER.info("Unregistered audio event listener: {}", listener.getClass().getName());
+    }
+
+    @Override
+    public void registerStreamListener(AudioStreamListener listener) {
+        if (listener == null) {
+            throw new IllegalArgumentException("Stream listener cannot be null");
+        }
+        
+        streamListeners.add(listener);
+        LOGGER.info("Registered audio stream listener: {}", listener.getClass().getName());
+    }
+
+    @Override
+    public void unregisterStreamListener(AudioStreamListener listener) {
+        if (listener == null) {
+            return;
+        }
+        
+        streamListeners.remove(listener);
+        LOGGER.info("Unregistered audio stream listener: {}", listener.getClass().getName());
     }
 
     @Override
@@ -197,11 +219,87 @@ public class AudioDiscAPIImpl implements AudioDiscAPI {
     }
 
     /**
+     * Fires an audio packet event to all registered stream listeners.
+     * 
+     * @param event The audio packet event
+     */
+    public void fireAudioPacketEvent(AudioPacketEvent event) {
+        for (AudioStreamListener listener : streamListeners) {
+            try {
+                listener.onAudioPacket(event);
+            } catch (Exception e) {
+                LOGGER.error("Error in stream listener {} handling audio packet", 
+                           listener.getClass().getName(), e);
+            }
+        }
+    }
+
+    /**
+     * Notifies all stream listeners that audio playback has started.
+     * 
+     * @param world The server world
+     * @param jukeboxPos The jukebox position
+     * @param discName The disc name
+     * @param audioId The audio ID
+     */
+    public void notifyStreamStart(net.minecraft.server.world.ServerWorld world, 
+                                  net.minecraft.util.math.BlockPos jukeboxPos, 
+                                  String discName, String audioId) {
+        for (AudioStreamListener listener : streamListeners) {
+            try {
+                listener.onStreamStart(world, jukeboxPos, discName, audioId);
+            } catch (Exception e) {
+                LOGGER.error("Error in stream listener {} handling stream start", 
+                           listener.getClass().getName(), e);
+            }
+        }
+    }
+
+    /**
+     * Notifies all stream listeners that audio playback has stopped.
+     * 
+     * @param world The server world
+     * @param jukeboxPos The jukebox position
+     * @param audioId The audio ID
+     */
+    public void notifyStreamStop(net.minecraft.server.world.ServerWorld world, 
+                                 net.minecraft.util.math.BlockPos jukeboxPos, 
+                                 String audioId) {
+        for (AudioStreamListener listener : streamListeners) {
+            try {
+                listener.onStreamStop(world, jukeboxPos, audioId);
+            } catch (Exception e) {
+                LOGGER.error("Error in stream listener {} handling stream stop", 
+                           listener.getClass().getName(), e);
+            }
+        }
+    }
+
+    /**
+     * Checks if there are any registered stream listeners.
+     * 
+     * @return true if there are stream listeners, false otherwise
+     */
+    public boolean hasStreamListeners() {
+        return !streamListeners.isEmpty();
+    }
+
+    /**
+     * Gets the number of registered stream listeners.
+     * 
+     * @return The stream listener count
+     */
+    public int getStreamListenerCount() {
+        return streamListeners.size();
+    }
+
+    /**
      * Clears all registered listeners.
      * This should only be used for testing or cleanup.
      */
     public void clearListeners() {
         listeners.clear();
-        LOGGER.info("Cleared all audio event listeners");
+        streamListeners.clear();
+        LOGGER.info("Cleared all audio event listeners and stream listeners");
     }
 }

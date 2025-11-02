@@ -67,5 +67,34 @@
   "command.youtube.error": "§cErreur de téléchargement YouTube : %s",
   "command.youtube.not_found": "§cErreur : fichier téléchargé introuvable",
   "command.youtube.yt_dlp_required": "§7yt-dlp est requis sur le serveur pour le support YouTube",
-  "command.youtube.use_direct": "§7Utilisez la commande normale /audiodisc upload <url_audio_directe>"
+  "command.youtube.use_direct": "§7Utilisez la commande normale /audiodisc upload <url_audio_directe>",
+
+  "command.rename.no_disc": "§cVous devez tenir un disque musical !",
+  "command.rename.no_audio": "§cCe disque n'a pas d'audio personnalisé !",
+  "command.rename.title_success": "§aTitre du disque changé en : §f%s",
+  "command.rename.lore_success": "§aDescription du disque changée en : §f%s",
+  "command.rename.music_name_success": "§aNom de la musique changé en : §f%s",
+  "command.rename.error": "§cErreur lors du renommage du disque : %s",
+
+  "command.help.header": "§6=== Commandes AudioDisc ===",
+  "command.help.upload": "§f/audiodisc upload <url> §7- Télécharger l'audio depuis une URL vers le disque",
+  "command.help.youtube": "§f/audiodisc youtube <url> §7- Télécharger l'audio depuis YouTube",
+  "command.help.rename": "§f/audiodisc rename title/lore/music_name <texte> §7- Modifier les propriétés du disque",
+  "command.help.info": "§f/audiodisc info §7- Afficher les informations du disque",
+  "command.help.clear": "§f/audiodisc clear §7- Supprimer l'audio du disque",
+  "command.help.help": "§f/audiodisc help [commande] §7- Afficher l'aide",
+  "command.help.admin_header": "§6=== Commandes Administrateur ===",
+  "command.help.reload": "§f/audiodisc reload §7- Recharger la configuration",
+  "command.help.lang": "§f/audiodisc lang create/list §7- Gérer les fichiers de langue",
+  "command.help.footer": "§7Utilisez §f/audiodisc help <commande> §7pour une aide détaillée",
+  "command.help.unknown": "§cCommande inconnue : %s",
+  "command.help.use_help": "§7Utilisez §f/audiodisc help §7pour voir toutes les commandes",
+
+  "command.help.detail.upload": "§6/audiodisc upload <url>\n§7Télécharge l'audio depuis une URL directe et l'applique au disque musical dans votre main.\n§7Formats supportés : MP3, OGG, WAV, FLAC\n§7Exemple : §f/audiodisc upload https://example.com/audio.mp3",
+  "command.help.detail.youtube": "§6/audiodisc youtube <url>\n§7Télécharge l'audio d'une vidéo YouTube et l'applique au disque.\n§7Nécessite yt-dlp installé sur le serveur.\n§7Exemple : §f/audiodisc youtube https://youtube.com/watch?v=...",
+  "command.help.detail.rename": "§6/audiodisc rename title <texte>\n§7Change le nom d'affichage du disque dans votre main.\n§7Exemple : §f/audiodisc rename title Ma Chanson Préférée\n\n§6/audiodisc rename lore <texte>\n§7Définit le texte de description affiché dans l'infobulle du disque.\n§7Supporte les codes de couleur avec & (ex. &4 pour rouge, &a pour vert).\n§7Exemple : §f/audiodisc rename lore &6Musique &cépique de combat\n\n§6/audiodisc rename music_name <texte>\n§7Change le nom de la piste musicale (comme vanilla 'Lena Raine - otherside').\n§7Exemple : §f/audiodisc rename music_name Nom de l'Artiste - Titre de la Chanson",
+  "command.help.detail.info": "§6/audiodisc info\n§7Affiche des informations détaillées sur l'audio personnalisé du disque dans votre main.\n§7Affiche : titre, format, durée, débit, téléchargeur, taille du fichier",
+  "command.help.detail.clear": "§6/audiodisc clear\n§7Supprime l'audio personnalisé du disque dans votre main.\n§7Le disque reviendra à son état d'origine.",
+  "command.help.detail.reload": "§6/audiodisc reload\n§7Recharge la configuration du mod depuis le disque.\n§7Nécessite les permissions d'opérateur (niveau 3).",
+  "command.help.detail.lang": "§6/audiodisc lang create <code>\n§7Crée un fichier de langue personnalisé pour la traduction.\n§7Exemple : §f/audiodisc lang create fr_fr\n\n§6/audiodisc lang list\n§7Liste tous les fichiers de langue disponibles."
 }

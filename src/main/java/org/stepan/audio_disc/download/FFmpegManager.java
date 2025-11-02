@@ -18,7 +18,7 @@ import java.util.zip.ZipInputStream;
  * Manages automatic download and installation of FFmpeg.
  */
 public class FFmpegManager {
-    private static final Logger LOGGER = LoggerFactory.getLogger("FFmpegManager");
+    private static final Logger LOGGER = LoggerFactory.getLogger("AudioDisc");
     
     // FFmpeg release URLs for different platforms
     private static final String WINDOWS_URL = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip";

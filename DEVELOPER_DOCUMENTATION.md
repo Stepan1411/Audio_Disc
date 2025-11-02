@@ -1219,3 +1219,483 @@ public class AudioDebugCommands {
 ---
 
 *This documentation is maintained by the Custom Audio Disc development team. For questions or contributions, please visit our GitHub repository.*
+
+---
+
+
+## 🎵 Audio Stream Listener API
+
+### Overview
+
+The Audio Stream Listener API allows mods to receive real-time audio packets during playback, enabling features like:
+- Audio retransmission (e.g., radio stations)
+- Real-time audio analysis
+- Audio recording and logging
+- Cross-server audio streaming
+- Custom audio effects processing
+
+This API works independently of player proximity - audio packets are sent to listeners even when no players are nearby the jukebox.
+
+### AudioStreamListener Interface
+
+```java
+public interface AudioStreamListener {
+    /**
+     * Called for each audio packet during playback (~20ms intervals).
+     * Audio data is PCM 16-bit signed format at 48kHz sample rate.
+     * 
+     * @param event The audio packet event containing audio data and metadata
+     */
+    void onAudioPacket(AudioPacketEvent event);
+    
+    /**
+     * Called when audio playback starts at a jukebox.
+     * 
+     * @param world The server world
+     * @param jukeboxPos The jukebox position
+     * @param discName The name of the disc
+     * @param audioId The unique audio identifier
+     */
+    default void onStreamStart(ServerWorld world, BlockPos jukeboxPos, 
+                              String discName, String audioId) {}
+    
+    /**
+     * Called when audio playback stops at a jukebox.
+     * 
+     * @param world The server world
+     * @param jukeboxPos The jukebox position
+     * @param audioId The unique audio identifier
+     */
+    default void onStreamStop(ServerWorld world, BlockPos jukeboxPos, String audioId) {}
+}
+```
+
+### AudioPacketEvent
+
+```java
+public class AudioPacketEvent {
+    private final ServerWorld world;
+    private final BlockPos jukeboxPos;
+    private final byte[] audioData;      // PCM 16-bit signed, 48kHz, mono
+    private final String discName;
+    private final int sampleRate;        // Usually 48000 Hz
+    private final String audioId;
+    
+    // Getters
+    public ServerWorld getWorld() { return world; }
+    public BlockPos getJukeboxPosition() { return jukeboxPos; }
+    public byte[] getAudioData() { return audioData; }
+    public String getDiscName() { return discName; }
+    public int getSampleRate() { return sampleRate; }
+    public String getAudioId() { return audioId; }
+}
+```
+
+### Registration
+
+```java
+// Register a stream listener
+AudioDiscAPI api = AudioDiscAPIImpl.getInstance();
+api.registerStreamListener(new MyStreamListener());
+
+// Unregister when done
+api.unregisterStreamListener(listener);
+```
+
+### Example: Simple Radio Mod Integration
+
+```java
+public class RadioIntegration implements AudioStreamListener {
+    
+    private final RadioManager radioManager;
+    
+    public RadioIntegration(RadioManager radioManager) {
+        this.radioManager = radioManager;
+    }
+    
+    @Override
+    public void onAudioPacket(AudioPacketEvent event) {
+        // Find nearby radio transmitter
+        RadioStation transmitter = findNearbyTransmitter(
+            event.getWorld(), 
+            event.getJukeboxPosition()
+        );
+        
+        if (transmitter != null && transmitter.isActive()) {
+            // Get all receivers tuned to this transmitter's channel
+            List<RadioStation> receivers = radioManager.getReceiversOnChannel(
+                transmitter.getChannel()
+            );
+            
+            // Retransmit audio to all receivers
+            for (RadioStation receiver : receivers) {
+                retransmitAudio(receiver, event.getAudioData(), event.getSampleRate());
+            }
+        }
+    }
+    
+    @Override
+    public void onStreamStart(ServerWorld world, BlockPos jukeboxPos, 
+                             String discName, String audioId) {
+        RadioStation transmitter = findNearbyTransmitter(world, jukeboxPos);
+        if (transmitter != null && transmitter.isActive()) {
+            // Update radio station display
+            transmitter.setNowPlaying(discName);
+            
+            // Notify all receivers
+            List<RadioStation> receivers = radioManager.getReceiversOnChannel(
+                transmitter.getChannel()
+            );
+            for (RadioStation receiver : receivers) {
+                receiver.displayMessage("Now playing: " + discName);
+            }
+        }
+    }
+    
+    @Override
+    public void onStreamStop(ServerWorld world, BlockPos jukeboxPos, String audioId) {
+        RadioStation transmitter = findNearbyTransmitter(world, jukeboxPos);
+        if (transmitter != null) {
+            transmitter.setNowPlaying(null);
+            
+            List<RadioStation> receivers = radioManager.getReceiversOnChannel(
+                transmitter.getChannel()
+            );
+            for (RadioStation receiver : receivers) {
+                receiver.displayMessage("Playback stopped");
+            }
+        }
+    }
+    
+    private RadioStation findNearbyTransmitter(ServerWorld world, BlockPos jukeboxPos) {
+        // Search for transmitters within 5 blocks of the jukebox
+        int radius = 5;
+        for (int x = -radius; x <= radius; x++) {
+            for (int y = -radius; y <= radius; y++) {
+                for (int z = -radius; z <= radius; z++) {
+                    BlockPos pos = jukeboxPos.add(x, y, z);
+                    RadioStation station = radioManager.getStationAt(world, pos);
+                    if (station != null && station.isTransmitter()) {
+                        return station;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+    
+    private void retransmitAudio(RadioStation receiver, byte[] audioData, int sampleRate) {
+        // Get all players near the receiver
+        List<ServerPlayerEntity> nearbyPlayers = receiver.getNearbyPlayers();
+        
+        // Send audio to each player using Voice Chat API
+        for (ServerPlayerEntity player : nearbyPlayers) {
+            voiceChatApi.playLocationalAudio(
+                player,
+                receiver.getPosition(),
+                audioData,
+                sampleRate
+            );
+        }
+    }
+}
+```
+
+### Example: Audio Logger
+
+```java
+public class AudioLogger implements AudioStreamListener {
+    
+    private final Map<String, AudioRecording> activeRecordings = new ConcurrentHashMap<>();
+    
+    @Override
+    public void onStreamStart(ServerWorld world, BlockPos jukeboxPos, 
+                             String discName, String audioId) {
+        String recordingId = generateRecordingId(world, jukeboxPos);
+        AudioRecording recording = new AudioRecording(discName, audioId);
+        activeRecordings.put(recordingId, recording);
+        
+        LOGGER.info("Started recording audio: {} at {}", discName, jukeboxPos);
+    }
+    
+    @Override
+    public void onAudioPacket(AudioPacketEvent event) {
+        String recordingId = generateRecordingId(event.getWorld(), event.getJukeboxPosition());
+        AudioRecording recording = activeRecordings.get(recordingId);
+        
+        if (recording != null) {
+            recording.addPacket(event.getAudioData());
+        }
+    }
+    
+    @Override
+    public void onStreamStop(ServerWorld world, BlockPos jukeboxPos, String audioId) {
+        String recordingId = generateRecordingId(world, jukeboxPos);
+        AudioRecording recording = activeRecordings.remove(recordingId);
+        
+        if (recording != null) {
+            // Save recording to file
+            saveRecording(recording);
+            LOGGER.info("Saved recording: {} ({} packets)", 
+                recording.getDiscName(), recording.getPacketCount());
+        }
+    }
+    
+    private String generateRecordingId(ServerWorld world, BlockPos pos) {
+        return world.getRegistryKey().getValue() + "_" + pos.toShortString();
+    }
+    
+    private void saveRecording(AudioRecording recording) {
+        Path outputPath = Paths.get("recordings", recording.getAudioId() + ".pcm");
+        try {
+            Files.createDirectories(outputPath.getParent());
+            Files.write(outputPath, recording.getAllData());
+        } catch (IOException e) {
+            LOGGER.error("Failed to save recording", e);
+        }
+    }
+    
+    private static class AudioRecording {
+        private final String discName;
+        private final String audioId;
+        private final List<byte[]> packets = new ArrayList<>();
+        
+        public AudioRecording(String discName, String audioId) {
+            this.discName = discName;
+            this.audioId = audioId;
+        }
+        
+        public void addPacket(byte[] data) {
+            packets.add(data.clone());
+        }
+        
+        public byte[] getAllData() {
+            int totalSize = packets.stream().mapToInt(p -> p.length).sum();
+            byte[] result = new byte[totalSize];
+            int offset = 0;
+            for (byte[] packet : packets) {
+                System.arraycopy(packet, 0, result, offset, packet.length);
+                offset += packet.length;
+            }
+            return result;
+        }
+        
+        public String getDiscName() { return discName; }
+        public String getAudioId() { return audioId; }
+        public int getPacketCount() { return packets.size(); }
+    }
+}
+```
+
+### Example: Real-time Audio Analysis
+
+```java
+public class AudioAnalyzer implements AudioStreamListener {
+    
+    private final Map<String, AudioStats> statsMap = new ConcurrentHashMap<>();
+    
+    @Override
+    public void onStreamStart(ServerWorld world, BlockPos jukeboxPos, 
+                             String discName, String audioId) {
+        String key = getKey(world, jukeboxPos);
+        statsMap.put(key, new AudioStats(discName));
+    }
+    
+    @Override
+    public void onAudioPacket(AudioPacketEvent event) {
+        String key = getKey(event.getWorld(), event.getJukeboxPosition());
+        AudioStats stats = statsMap.get(key);
+        
+        if (stats != null) {
+            // Analyze audio packet
+            byte[] audioData = event.getAudioData();
+            
+            // Calculate RMS level (volume)
+            double rms = calculateRMS(audioData);
+            stats.addRMSValue(rms);
+            
+            // Detect silence
+            if (rms < 0.01) {
+                stats.incrementSilencePackets();
+            }
+            
+            // Detect peaks
+            if (rms > 0.8) {
+                stats.incrementPeakPackets();
+            }
+            
+            stats.incrementTotalPackets();
+        }
+    }
+    
+    @Override
+    public void onStreamStop(ServerWorld world, BlockPos jukeboxPos, String audioId) {
+        String key = getKey(world, jukeboxPos);
+        AudioStats stats = statsMap.remove(key);
+        
+        if (stats != null) {
+            // Log statistics
+            LOGGER.info("Audio Statistics for '{}':", stats.getDiscName());
+            LOGGER.info("  Total packets: {}", stats.getTotalPackets());
+            LOGGER.info("  Average RMS: {:.3f}", stats.getAverageRMS());
+            LOGGER.info("  Peak packets: {}", stats.getPeakPackets());
+            LOGGER.info("  Silence packets: {}", stats.getSilencePackets());
+            LOGGER.info("  Silence percentage: {:.1f}%", stats.getSilencePercentage());
+        }
+    }
+    
+    private String getKey(ServerWorld world, BlockPos pos) {
+        return world.getRegistryKey().getValue() + "_" + pos.toShortString();
+    }
+    
+    private double calculateRMS(byte[] audioData) {
+        long sum = 0;
+        int sampleCount = audioData.length / 2; // 16-bit samples
+        
+        for (int i = 0; i < audioData.length - 1; i += 2) {
+            // Convert bytes to 16-bit sample (little endian)
+            short sample = (short) ((audioData[i] & 0xFF) | ((audioData[i + 1] & 0xFF) << 8));
+            sum += sample * sample;
+        }
+        
+        if (sampleCount > 0) {
+            double meanSquare = (double) sum / sampleCount;
+            return Math.sqrt(meanSquare) / Short.MAX_VALUE;
+        }
+        
+        return 0.0;
+    }
+    
+    private static class AudioStats {
+        private final String discName;
+        private int totalPackets = 0;
+        private int silencePackets = 0;
+        private int peakPackets = 0;
+        private double totalRMS = 0.0;
+        
+        public AudioStats(String discName) {
+            this.discName = discName;
+        }
+        
+        public void incrementTotalPackets() { totalPackets++; }
+        public void incrementSilencePackets() { silencePackets++; }
+        public void incrementPeakPackets() { peakPackets++; }
+        public void addRMSValue(double rms) { totalRMS += rms; }
+        
+        public String getDiscName() { return discName; }
+        public int getTotalPackets() { return totalPackets; }
+        public int getSilencePackets() { return silencePackets; }
+        public int getPeakPackets() { return peakPackets; }
+        public double getAverageRMS() { 
+            return totalPackets > 0 ? totalRMS / totalPackets : 0.0; 
+        }
+        public double getSilencePercentage() {
+            return totalPackets > 0 ? (silencePackets * 100.0) / totalPackets : 0.0;
+        }
+    }
+}
+```
+
+### Technical Details
+
+#### Audio Format
+- **Format**: PCM 16-bit signed (little endian)
+- **Sample Rate**: 48000 Hz (48 kHz)
+- **Channels**: Mono (1 channel)
+- **Packet Size**: 960 samples (~20ms at 48kHz)
+- **Bytes per Packet**: 1920 bytes (960 samples × 2 bytes)
+
+#### Performance Considerations
+- Audio packet events are fired approximately every 20 milliseconds
+- Keep processing in `onAudioPacket()` minimal to avoid performance issues
+- Use async processing for heavy operations
+- Consider buffering packets before processing
+- Events are only fired when listeners are registered (zero overhead when unused)
+
+#### Thread Safety
+- All listener methods are called on the **server thread**
+- Listener registration/unregistration is **thread-safe**
+- Exceptions in listeners are **caught and logged** without affecting playback
+- Use `ConcurrentHashMap` or synchronized collections for shared state
+
+### Best Practices
+
+1. **Minimize Processing Time**
+   ```java
+   @Override
+   public void onAudioPacket(AudioPacketEvent event) {
+       // Bad: Heavy processing in event handler
+       // processAudioWithFFmpeg(event.getAudioData());
+       
+       // Good: Queue for async processing
+       audioQueue.offer(event.getAudioData());
+   }
+   ```
+
+2. **Buffer Packets for Efficiency**
+   ```java
+   private final List<byte[]> buffer = new ArrayList<>();
+   private static final int BUFFER_SIZE = 50; // ~1 second at 48kHz
+   
+   @Override
+   public void onAudioPacket(AudioPacketEvent event) {
+       buffer.add(event.getAudioData());
+       
+       if (buffer.size() >= BUFFER_SIZE) {
+           processBufferedAudio(buffer);
+           buffer.clear();
+       }
+   }
+   ```
+
+3. **Handle Errors Gracefully**
+   ```java
+   @Override
+   public void onAudioPacket(AudioPacketEvent event) {
+       try {
+           processAudio(event.getAudioData());
+       } catch (Exception e) {
+           LOGGER.error("Error processing audio packet", e);
+           // Don't let exceptions propagate
+       }
+   }
+   ```
+
+4. **Clean Up Resources**
+   ```java
+   @Override
+   public void onStreamStop(ServerWorld world, BlockPos jukeboxPos, String audioId) {
+       // Clean up any resources
+       closeConnections();
+       clearBuffers();
+       saveState();
+   }
+   ```
+
+### Example: ExampleStreamListener
+
+The mod includes a complete example implementation at:
+`src/main/java/org/stepan/audio_disc/api/example/ExampleStreamListener.java`
+
+This example demonstrates:
+- Packet counting and statistics
+- Audio level calculation
+- Logging and debugging
+- Proper resource management
+
+---
+
+## 📚 Additional Resources
+
+### API Documentation Files
+
+- **API_USAGE_EXAMPLE.md** - Comprehensive API usage examples with Simple Radio Mod integration
+- **API_DOCUMENTATION_RU.md** - Russian language API documentation
+- **API_IMPLEMENTATION_SUMMARY.md** - Technical implementation details
+
+### Example Code
+
+Check the `src/main/java/org/stepan/audio_disc/api/example/` directory for complete working examples.
+
+---
+

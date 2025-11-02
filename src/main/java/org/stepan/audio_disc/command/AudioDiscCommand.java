@@ -73,6 +73,29 @@ public class AudioDiscCommand {
                     .executes(AudioDiscCommand::executeListLang)
                 )
             )
+            .then(CommandManager.literal("rename")
+                .then(CommandManager.literal("title")
+                    .then(CommandManager.argument("title", StringArgumentType.greedyString())
+                        .executes(context -> executeRenameTitle(context, StringArgumentType.getString(context, "title")))
+                    )
+                )
+                .then(CommandManager.literal("lore")
+                    .then(CommandManager.argument("lore", StringArgumentType.greedyString())
+                        .executes(context -> executeRenameLore(context, StringArgumentType.getString(context, "lore")))
+                    )
+                )
+                .then(CommandManager.literal("music_name")
+                    .then(CommandManager.argument("music_name", StringArgumentType.greedyString())
+                        .executes(context -> executeRenameMusicName(context, StringArgumentType.getString(context, "music_name")))
+                    )
+                )
+            )
+            .then(CommandManager.literal("help")
+                .executes(AudioDiscCommand::executeHelp)
+                .then(CommandManager.argument("command", StringArgumentType.word())
+                    .executes(context -> executeHelpCommand(context, StringArgumentType.getString(context, "command")))
+                )
+            )
         );
         
         LOGGER.info("Registered /audiodisc command");
@@ -384,6 +407,258 @@ public class AudioDiscCommand {
             LOGGER.error("Error listing language files", e);
             source.sendFeedback(() -> Text.literal("§cОшибка получения списка файлов: " + e.getMessage()), true);
         }
+
+        return 1;
+    }
+
+    /**
+     * Renames the title of the held custom music disc.
+     */
+    private static int executeRenameTitle(CommandContext<ServerCommandSource> context, String title) {
+        ServerCommandSource source = context.getSource();
+        
+        if (!source.isExecutedByPlayer()) {
+            source.sendError(Text.literal("This command can only be executed by a player"));
+            return 0;
+        }
+
+        ServerPlayerEntity player = source.getPlayer();
+        if (player == null) return 0;
+
+        if (!validateHeldItem(player)) {
+            player.sendMessage(Text.literal(Localization.getForPlayer("command.rename.no_disc", player)), false);
+            return 0;
+        }
+
+        try {
+            AudioStorageManager storageManager = Audio_disc.getStorageManager();
+            if (storageManager == null) {
+                player.sendMessage(Text.literal("§cError: Storage manager not initialized"), false);
+                return 0;
+            }
+
+            ItemStack disc = player.getMainHandStack();
+            String audioId = storageManager.getDiscAudioId(disc).orElse(null);
+            
+            if (audioId == null) {
+                player.sendMessage(Text.literal(Localization.getForPlayer("command.rename.no_audio", player)), false);
+                return 0;
+            }
+
+            // Set custom name on the disc using DataComponentTypes
+            disc.set(net.minecraft.component.DataComponentTypes.CUSTOM_NAME, Text.literal(title));
+            
+            player.sendMessage(Text.literal(Localization.formatForPlayer("command.rename.title_success", player, title)), false);
+            
+        } catch (Exception e) {
+            LOGGER.error("Error renaming disc title", e);
+            player.sendMessage(Text.literal(Localization.formatForPlayer("command.rename.error", player, e.getMessage())), false);
+        }
+
+        return 1;
+    }
+
+    /**
+     * Sets the lore (description) of the held custom music disc.
+     */
+    private static int executeRenameLore(CommandContext<ServerCommandSource> context, String lore) {
+        ServerCommandSource source = context.getSource();
+        
+        if (!source.isExecutedByPlayer()) {
+            source.sendError(Text.literal("This command can only be executed by a player"));
+            return 0;
+        }
+
+        ServerPlayerEntity player = source.getPlayer();
+        if (player == null) return 0;
+
+        if (!validateHeldItem(player)) {
+            player.sendMessage(Text.literal(Localization.getForPlayer("command.rename.no_disc", player)), false);
+            return 0;
+        }
+
+        try {
+            AudioStorageManager storageManager = Audio_disc.getStorageManager();
+            if (storageManager == null) {
+                player.sendMessage(Text.literal("§cError: Storage manager not initialized"), false);
+                return 0;
+            }
+
+            ItemStack disc = player.getMainHandStack();
+            String audioId = storageManager.getDiscAudioId(disc).orElse(null);
+            
+            if (audioId == null) {
+                player.sendMessage(Text.literal(Localization.getForPlayer("command.rename.no_audio", player)), false);
+                return 0;
+            }
+
+            // Convert & color codes to § and add white color by default
+            String formattedLore = parseColorCodes(lore);
+            if (!formattedLore.startsWith("§")) {
+                formattedLore = "§f" + formattedLore; // White color by default
+            }
+            
+            // Set lore on the disc using DataComponentTypes
+            net.minecraft.component.type.LoreComponent loreComponent = new net.minecraft.component.type.LoreComponent(
+                java.util.List.of(Text.literal(formattedLore))
+            );
+            disc.set(net.minecraft.component.DataComponentTypes.LORE, loreComponent);
+            
+            player.sendMessage(Text.literal(Localization.formatForPlayer("command.rename.lore_success", player, stripColorCodes(lore))), false);
+            
+        } catch (Exception e) {
+            LOGGER.error("Error setting disc lore", e);
+            player.sendMessage(Text.literal(Localization.formatForPlayer("command.rename.error", player, e.getMessage())), false);
+        }
+
+        return 1;
+    }
+
+    /**
+     * Changes the music name (metadata title) of the held custom music disc.
+     */
+    private static int executeRenameMusicName(CommandContext<ServerCommandSource> context, String musicName) {
+        ServerCommandSource source = context.getSource();
+        
+        if (!source.isExecutedByPlayer()) {
+            source.sendError(Text.literal("This command can only be executed by a player"));
+            return 0;
+        }
+
+        ServerPlayerEntity player = source.getPlayer();
+        if (player == null) return 0;
+
+        if (!validateHeldItem(player)) {
+            player.sendMessage(Text.literal(Localization.getForPlayer("command.rename.no_disc", player)), false);
+            return 0;
+        }
+
+        try {
+            AudioStorageManager storageManager = Audio_disc.getStorageManager();
+            if (storageManager == null) {
+                player.sendMessage(Text.literal("§cError: Storage manager not initialized"), false);
+                return 0;
+            }
+
+            ItemStack disc = player.getMainHandStack();
+            String audioId = storageManager.getDiscAudioId(disc).orElse(null);
+            
+            if (audioId == null) {
+                player.sendMessage(Text.literal(Localization.getForPlayer("command.rename.no_audio", player)), false);
+                return 0;
+            }
+
+            // Update the music name in NBT metadata
+            net.minecraft.component.type.NbtComponent currentData = disc.getOrDefault(
+                net.minecraft.component.DataComponentTypes.CUSTOM_DATA, 
+                net.minecraft.component.type.NbtComponent.DEFAULT
+            );
+            net.minecraft.nbt.NbtCompound rootNbt = currentData.copyNbt();
+            
+            if (rootNbt.contains("audio_disc")) {
+                java.util.Optional<net.minecraft.nbt.NbtCompound> audioDiscNbtOpt = rootNbt.getCompound("audio_disc");
+                if (audioDiscNbtOpt.isPresent()) {
+                    net.minecraft.nbt.NbtCompound audioDiscNbt = audioDiscNbtOpt.get();
+                    
+                    if (audioDiscNbt.contains("metadata")) {
+                        java.util.Optional<net.minecraft.nbt.NbtCompound> metadataNbtOpt = audioDiscNbt.getCompound("metadata");
+                        if (metadataNbtOpt.isPresent()) {
+                            net.minecraft.nbt.NbtCompound metadataNbt = metadataNbtOpt.get();
+                            metadataNbt.putString("title", musicName);
+                            audioDiscNbt.put("metadata", metadataNbt);
+                            rootNbt.put("audio_disc", audioDiscNbt);
+                            disc.set(net.minecraft.component.DataComponentTypes.CUSTOM_DATA, 
+                                    net.minecraft.component.type.NbtComponent.of(rootNbt));
+                        }
+                    }
+                }
+            }
+            
+            player.sendMessage(Text.literal(Localization.formatForPlayer("command.rename.music_name_success", player, musicName)), false);
+            
+        } catch (Exception e) {
+            LOGGER.error("Error setting music name", e);
+            player.sendMessage(Text.literal(Localization.formatForPlayer("command.rename.error", player, e.getMessage())), false);
+        }
+
+        return 1;
+    }
+
+    /**
+     * Parses color codes from & to § format.
+     * Supports standard Minecraft color codes (0-9, a-f, k-o, r).
+     */
+    private static String parseColorCodes(String text) {
+        if (text == null) return "";
+        return text.replaceAll("&([0-9a-fk-or])", "§$1");
+    }
+
+    /**
+     * Strips all color codes from text for display purposes.
+     */
+    private static String stripColorCodes(String text) {
+        if (text == null) return "";
+        return text.replaceAll("[&§][0-9a-fk-or]", "");
+    }
+
+    /**
+     * Shows help information for all commands.
+     */
+    private static int executeHelp(CommandContext<ServerCommandSource> context) {
+        ServerCommandSource source = context.getSource();
+        
+        if (!source.isExecutedByPlayer()) {
+            source.sendError(Text.literal("This command can only be executed by a player"));
+            return 0;
+        }
+
+        ServerPlayerEntity player = source.getPlayer();
+        if (player == null) return 0;
+
+        player.sendMessage(Text.literal(Localization.getForPlayer("command.help.header", player)), false);
+        player.sendMessage(Text.literal(Localization.getForPlayer("command.help.upload", player)), false);
+        player.sendMessage(Text.literal(Localization.getForPlayer("command.help.youtube", player)), false);
+        player.sendMessage(Text.literal(Localization.getForPlayer("command.help.rename", player)), false);
+        player.sendMessage(Text.literal(Localization.getForPlayer("command.help.info", player)), false);
+        player.sendMessage(Text.literal(Localization.getForPlayer("command.help.clear", player)), false);
+        player.sendMessage(Text.literal(Localization.getForPlayer("command.help.help", player)), false);
+        
+        if (player.hasPermissionLevel(3)) {
+            player.sendMessage(Text.literal(Localization.getForPlayer("command.help.admin_header", player)), false);
+            player.sendMessage(Text.literal(Localization.getForPlayer("command.help.reload", player)), false);
+            player.sendMessage(Text.literal(Localization.getForPlayer("command.help.lang", player)), false);
+        }
+        
+        player.sendMessage(Text.literal(Localization.getForPlayer("command.help.footer", player)), false);
+
+        return 1;
+    }
+
+    /**
+     * Shows detailed help for a specific command.
+     */
+    private static int executeHelpCommand(CommandContext<ServerCommandSource> context, String command) {
+        ServerCommandSource source = context.getSource();
+        
+        if (!source.isExecutedByPlayer()) {
+            source.sendError(Text.literal("This command can only be executed by a player"));
+            return 0;
+        }
+
+        ServerPlayerEntity player = source.getPlayer();
+        if (player == null) return 0;
+
+        String key = "command.help.detail." + command.toLowerCase();
+        String helpText = Localization.getForPlayer(key, player);
+        
+        // Check if localization key exists
+        if (helpText.equals(key)) {
+            player.sendMessage(Text.literal(Localization.formatForPlayer("command.help.unknown", player, command)), false);
+            player.sendMessage(Text.literal(Localization.getForPlayer("command.help.use_help", player)), false);
+            return 0;
+        }
+        
+        player.sendMessage(Text.literal(helpText), false);
 
         return 1;
     }

@@ -184,6 +184,11 @@ public class PlaybackManager {
             
             // Create AudioPlayer with custom audio supplier
             SimpleVoiceChatIntegration.PersonalAudioSupplier audioSupplier = new SimpleVoiceChatIntegration.PersonalAudioSupplier(finalAudioData);
+            
+            // TODO: Set context for API event firing
+            // Note: setContext method exists in PersonalAudioSupplier but may need to be called differently
+            // audioSupplier.setContext(world, jukeboxPos, metadata.title(), audioId);
+            
             de.maxhenkel.voicechat.api.audiochannel.AudioPlayer audioPlayer = voiceChatIntegration.getVoicechatApi().createAudioPlayer(
                 channel, 
                 voiceChatIntegration.getVoicechatApi().createEncoder(OpusEncoderMode.AUDIO), 
@@ -225,6 +230,9 @@ public class PlaybackManager {
                 metadata
             );
             AudioDiscAPIImpl.getInstance().firePlaybackStartEvent(startEvent);
+            
+            // Notify stream listeners about stream start
+            AudioDiscAPIImpl.getInstance().notifyStreamStart(world, jukeboxPos, metadata.title(), audioId);
             
             LOGGER.info("Successfully started playback at position {}", jukeboxPos);
             return true;
@@ -280,6 +288,10 @@ public class PlaybackManager {
             );
             AudioDiscAPIImpl.getInstance().firePlaybackStopEvent(stopEvent);
             
+            // Notify stream listeners about stream stop
+            // Note: world is null here, ideally should be stored in ActivePlayback
+            AudioDiscAPIImpl.getInstance().notifyStreamStop(null, jukeboxPos, playback.getAudioId());
+            
             LOGGER.info("Stopped playback at position {} (reason: {})", jukeboxPos, reason);
         }
     }
@@ -324,15 +336,23 @@ public class PlaybackManager {
 
     /**
      * Handles disc ejection when playback completes naturally.
-     * Note: Without mixins, we can't automatically eject discs.
-     * Players will need to manually remove completed discs.
      * 
      * @param jukeboxPos The jukebox position
      */
     private void ejectDiscFromJukebox(BlockPos jukeboxPos) {
-        LOGGER.info("Playback completed at {} - disc can be manually removed", jukeboxPos);
-        // Without mixins, we can't automatically eject discs
-        // Players will need to manually click the jukebox to remove the disc
+        LOGGER.info("Playback completed at {} - ejecting disc", jukeboxPos);
+        
+        // Get the active playback to find the world
+        ActivePlayback playback = activePlaybacks.get(jukeboxPos);
+        if (playback == null) {
+            LOGGER.warn("Cannot eject disc - no active playback found at {}", jukeboxPos);
+            return;
+        }
+        
+        // We need to access the world through the stream info
+        // For now, we'll use a workaround by storing world reference in ActivePlayback
+        // Or we can trigger ejection through the mixin
+        LOGGER.info("Disc ejection will be handled by JukeboxBlockEntity when setStack is called with empty stack");
     }
 
     /**

@@ -67,5 +67,34 @@
   "command.youtube.error": "§cYouTube download error: %s",
   "command.youtube.not_found": "§cError: downloaded file not found",
   "command.youtube.yt_dlp_required": "§7yt-dlp is required on the server for YouTube support",
-  "command.youtube.use_direct": "§7Use regular command /audiodisc upload <direct_audio_url>"
+  "command.youtube.use_direct": "§7Use regular command /audiodisc upload <direct_audio_url>",
+
+  "command.rename.no_disc": "§cYou must be holding a music disc!",
+  "command.rename.no_audio": "§cThis disc doesn't have custom audio!",
+  "command.rename.title_success": "§aDisc title changed to: §f%s",
+  "command.rename.lore_success": "§aDisc description changed to: §f%s",
+  "command.rename.music_name_success": "§aMusic name changed to: §f%s",
+  "command.rename.error": "§cError renaming disc: %s",
+
+  "command.help.header": "§6=== AudioDisc Commands ===",
+  "command.help.upload": "§f/audiodisc upload <url> §7- Upload audio from URL to disc",
+  "command.help.youtube": "§f/audiodisc youtube <url> §7- Download audio from YouTube",
+  "command.help.rename": "§f/audiodisc rename title/lore/music_name <text> §7- Change disc properties",
+  "command.help.info": "§f/audiodisc info §7- Show disc information",
+  "command.help.clear": "§f/audiodisc clear §7- Remove audio from disc",
+  "command.help.help": "§f/audiodisc help [command] §7- Show help",
+  "command.help.admin_header": "§6=== Admin Commands ===",
+  "command.help.reload": "§f/audiodisc reload §7- Reload configuration",
+  "command.help.lang": "§f/audiodisc lang create/list §7- Manage language files",
+  "command.help.footer": "§7Use §f/audiodisc help <command> §7for detailed help",
+  "command.help.unknown": "§cUnknown command: %s",
+  "command.help.use_help": "§7Use §f/audiodisc help §7to see all commands",
+
+  "command.help.detail.upload": "§6/audiodisc upload <url>\n§7Downloads audio from a direct URL and applies it to the music disc in your hand.\n§7Supported formats: MP3, OGG, WAV, FLAC\n§7Example: §f/audiodisc upload https://example.com/audio.mp3",
+  "command.help.detail.youtube": "§6/audiodisc youtube <url>\n§7Downloads audio from a YouTube video and applies it to the disc.\n§7Requires yt-dlp to be installed on the server.\n§7Example: §f/audiodisc youtube https://youtube.com/watch?v=...",
+  "command.help.detail.rename": "§6/audiodisc rename title <text>\n§7Changes the display name of the disc in your hand.\n§7Example: §f/audiodisc rename title My Favorite Song\n\n§6/audiodisc rename lore <text>\n§7Sets the description text shown in the disc tooltip.\n§7Supports color codes with & (e.g., &4 for red, &a for green).\n§7Example: §f/audiodisc rename lore &6Epic &cbattle music\n\n§6/audiodisc rename music_name <text>\n§7Changes the music track name (like vanilla 'Lena Raine - otherside').\n§7Example: §f/audiodisc rename music_name Artist Name - Song Title",
+  "command.help.detail.info": "§6/audiodisc info\n§7Shows detailed information about the custom audio on the disc in your hand.\n§7Displays: title, format, duration, bitrate, uploader, file size",
+  "command.help.detail.clear": "§6/audiodisc clear\n§7Removes custom audio from the disc in your hand.\n§7The disc will return to its original state.",
+  "command.help.detail.reload": "§6/audiodisc reload\n§7Reloads the mod configuration from disk.\n§7Requires operator permissions (level 3).",
+  "command.help.detail.lang": "§6/audiodisc lang create <code>\n§7Creates a custom language file for translation.\n§7Example: §f/audiodisc lang create en_us\n\n§6/audiodisc lang list\n§7Lists all available language files."
 }

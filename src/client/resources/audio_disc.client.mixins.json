@@ -4,6 +4,8 @@
   "package": "org.stepan.audio_disc.mixin.client",
   "compatibilityLevel": "JAVA_21",
   "client": [
+    "ClientPlayNetworkHandlerMixin",
+    "SoundManagerMixin"
   ],
   "injectors": {
     "defaultRequire": 1
